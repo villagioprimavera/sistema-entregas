@@ -1,11 +1,42 @@
 export default {
   async fetch(request, env, ctx) {
-    const html = `
+    try {
+      const response = await fetch(
+        `${env.SUPABASE_URL}/rest/v1/rpc/get_unidades_count`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": env.SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${env.SUPABASE_PUBLISHABLE_KEY}`
+          },
+          body: JSON.stringify({})
+        }
+      );
+
+      if (!response.ok) {
+        const erro = await response.text();
+
+        return new Response(
+          `Erro ao consultar Supabase: ${erro}`,
+          {
+            status: 500,
+            headers: {
+              "content-type": "text/plain; charset=UTF-8"
+            }
+          }
+        );
+      }
+
+      const total = await response.json();
+
+      const html = `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Sistema de Entregas</title>
 
   <style>
@@ -48,7 +79,7 @@ export default {
     .subtitle {
       text-align: center;
       color: #6b7280;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .status {
@@ -57,7 +88,27 @@ export default {
       border-radius: 10px;
       padding: 12px;
       text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .contador {
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
       margin-bottom: 24px;
+    }
+
+    .numero {
+      font-size: 38px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .texto {
+      margin-top: 5px;
+      color: #6b7280;
       font-size: 14px;
     }
 
@@ -71,11 +122,6 @@ export default {
       color: white;
       font-size: 16px;
       font-weight: bold;
-      cursor: pointer;
-    }
-
-    .button:hover {
-      background: #1d4ed8;
     }
 
     .info {
@@ -90,7 +136,9 @@ export default {
 </head>
 
 <body>
+
   <div class="container">
+
     <div class="card">
 
       <div class="logo">📦</div>
@@ -105,6 +153,13 @@ export default {
         ● Sistema online
       </div>
 
+      <div class="contador">
+        <div class="numero">${total}</div>
+        <div class="texto">
+          unidades cadastradas
+        </div>
+      </div>
+
       <button class="button">
         Registrar uma entrega
       </button>
@@ -114,15 +169,30 @@ export default {
       </div>
 
     </div>
+
   </div>
+
 </body>
 </html>
 `;
 
-    return new Response(html, {
-      headers: {
-        "content-type": "text/html; charset=UTF-8",
-      },
-    });
-  },
+      return new Response(html, {
+        headers: {
+          "content-type": "text/html; charset=UTF-8"
+        }
+      });
+
+    } catch (erro) {
+
+      return new Response(
+        `Erro de conexão: ${erro.message}`,
+        {
+          status: 500,
+          headers: {
+            "content-type": "text/plain; charset=UTF-8"
+          }
+        }
+      );
+    }
+  }
 };
