@@ -95,13 +95,30 @@ export default {
 
       const unidades = await response.json();
 
-      let lista = "";
+
+      // =========================================================
+      // PREPARAR LISTA DE CASAS
+      // =========================================================
+
+      let listaCasas = "";
 
       for (const unidade of unidades) {
-        lista += `
-          <option value="${unidade.id}">
-            ${unidade.numero}${unidade.bloco ? " - " + unidade.bloco : ""}
-          </option>
+
+        // Remove "CASA" do número exibido
+        // Exemplo: CASA01 -> 01
+        let numeroExibido = String(unidade.numero)
+          .replace(/^CASA/i, "")
+          .trim();
+
+        listaCasas += `
+          <div
+            class="opcao-casa"
+            data-id="${unidade.id}"
+            data-numero="${numeroExibido}"
+            onclick="selecionarCasa(this)"
+          >
+            ${numeroExibido}
+          </div>
         `;
       }
 
@@ -125,11 +142,13 @@ export default {
 
   <title>Registrar Entrega</title>
 
+
   <style>
 
     * {
       box-sizing: border-box;
     }
+
 
     body {
       margin: 0;
@@ -138,11 +157,13 @@ export default {
       color: #1f2937;
     }
 
+
     .container {
       max-width: 500px;
       margin: 0 auto;
       padding: 24px 16px;
     }
+
 
     .card {
       background: white;
@@ -151,11 +172,13 @@ export default {
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
+
     .logo {
       text-align: center;
       font-size: 42px;
       margin-bottom: 8px;
     }
+
 
     h1 {
       text-align: center;
@@ -163,11 +186,13 @@ export default {
       font-size: 26px;
     }
 
+
     .subtitle {
       text-align: center;
       color: #6b7280;
       margin-bottom: 28px;
     }
+
 
     label {
       display: block;
@@ -177,8 +202,8 @@ export default {
       font-size: 14px;
     }
 
-    input,
-    select {
+
+    input {
       width: 100%;
       padding: 13px;
       border: 1px solid #d1d5db;
@@ -186,6 +211,68 @@ export default {
       font-size: 16px;
       background: white;
     }
+
+
+    /* =====================================================
+       CAMPO DE BUSCA DA CASA
+       ===================================================== */
+
+    .busca-casa {
+      position: relative;
+    }
+
+
+    #buscaCasa {
+      width: 100%;
+    }
+
+
+    .lista-casas {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      max-height: 240px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+      z-index: 1000;
+    }
+
+
+    .opcao-casa {
+      padding: 14px 16px;
+      font-size: 17px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+
+    .opcao-casa:last-child {
+      border-bottom: none;
+    }
+
+
+    .opcao-casa:hover {
+      background: #f3f4f6;
+    }
+
+
+    .opcao-casa.selecionada {
+      background: #dbeafe;
+      font-weight: bold;
+    }
+
+
+    .sem-resultado {
+      padding: 14px 16px;
+      color: #6b7280;
+      text-align: center;
+    }
+
 
     .button {
       width: 100%;
@@ -200,10 +287,12 @@ export default {
       cursor: pointer;
     }
 
+
     .button:disabled {
       background: #9ca3af;
       cursor: not-allowed;
     }
+
 
     .mensagem {
       display: none;
@@ -214,17 +303,20 @@ export default {
       font-size: 14px;
     }
 
+
     .sucesso {
       display: block;
       background: #dcfce7;
       color: #166534;
     }
 
+
     .erro {
       display: block;
       background: #fee2e2;
       color: #991b1b;
     }
+
 
     .info {
       margin-top: 24px;
@@ -239,44 +331,76 @@ export default {
 
 </head>
 
+
 <body>
+
 
   <div class="container">
 
     <div class="card">
 
+
       <div class="logo">📦</div>
 
+
       <h1>Registrar entrega</h1>
+
 
       <div class="subtitle">
         Condomínio Villagio Primavera
       </div>
 
 
-      <label for="unidade">
+      <!-- ===================================================
+           CASA / UNIDADE
+           =================================================== -->
+
+      <label for="buscaCasa">
         Casa / Unidade
       </label>
 
-      <select id="unidade">
 
-        <option value="">
-          Selecione a casa
-        </option>
+      <div class="busca-casa">
 
-        ${lista}
+        <input
+          id="buscaCasa"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="Digite o número da casa"
+          oninput="buscarCasas()"
+          onclick="abrirListaCasas()"
+        >
 
-      </select>
+
+        <input
+          id="unidade"
+          type="hidden"
+        >
+
+
+        <div
+          id="listaCasas"
+          class="lista-casas"
+        >
+
+          ${listaCasas}
+
+        </div>
+
+      </div>
 
 
       <label for="entregador">
         Nome do entregador
       </label>
 
+
       <input
         id="entregador"
         type="text"
         placeholder="Digite seu nome"
+        autocomplete="name"
       >
 
 
@@ -284,16 +408,19 @@ export default {
         Telefone
       </label>
 
+
       <input
         id="telefone"
         type="tel"
         placeholder="(11) 99999-9999"
+        autocomplete="tel"
       >
 
 
       <label for="transportadora">
         Transportadora
       </label>
+
 
       <input
         id="transportadora"
@@ -321,6 +448,7 @@ export default {
         Preencha os dados para registrar a entrega.
       </div>
 
+
     </div>
 
   </div>
@@ -328,95 +456,358 @@ export default {
 
   <script>
 
-    async function registrarEntrega() {
 
-      const unidade =
-        document.getElementById("unidade").value;
+    // =========================================================
+    // ABRIR LISTA DE CASAS
+    // =========================================================
 
-      const entregador =
-        document.getElementById("entregador").value.trim();
+    function abrirListaCasas() {
 
-      const telefone =
-        document.getElementById("telefone").value.trim();
+      const lista =
+        document.getElementById("listaCasas");
 
-      const transportadora =
-        document.getElementById("transportadora").value.trim();
+      lista.style.display = "block";
 
-      const botao =
-        document.getElementById("botao");
+      buscarCasas();
+    }
+
+
+    // =========================================================
+    // BUSCAR CASAS
+    // =========================================================
+
+    function buscarCasas() {
+
+      const busca =
+        document
+          .getElementById("buscaCasa")
+          .value
+          .trim()
+          .toLowerCase();
+
+
+      const lista =
+        document.getElementById("listaCasas");
+
+
+      const opcoes =
+        lista.querySelectorAll(".opcao-casa");
+
+
+      let encontrou = false;
+
+
+      opcoes.forEach(opcao => {
+
+        const numero =
+          opcao
+            .dataset
+            .numero
+            .toLowerCase();
+
+
+        if (
+          busca === "" ||
+          numero.includes(busca)
+        ) {
+
+          opcao.style.display = "block";
+
+          encontrou = true;
+
+        } else {
+
+          opcao.style.display = "none";
+
+        }
+
+      });
+
+
+      // Remove mensagem anterior
 
       const mensagem =
-        document.getElementById("mensagem");
+        lista.querySelector(".sem-resultado");
+
+      if (mensagem) {
+        mensagem.remove();
+      }
 
 
-      mensagem.className = "mensagem";
+      // Nenhuma casa encontrada
+
+      if (!encontrou) {
+
+        const semResultado =
+          document.createElement("div");
+
+        semResultado.className =
+          "sem-resultado";
+
+        semResultado.textContent =
+          "Nenhuma casa encontrada.";
+
+        lista.appendChild(
+          semResultado
+        );
+      }
+
+
+      lista.style.display = "block";
+    }
+
+
+    // =========================================================
+    // SELECIONAR CASA
+    // =========================================================
+
+    function selecionarCasa(opcao) {
+
+      const id =
+        opcao.dataset.id;
+
+      const numero =
+        opcao.dataset.numero;
+
+
+      document
+        .getElementById("unidade")
+        .value = id;
+
+
+      document
+        .getElementById("buscaCasa")
+        .value = numero;
+
+
+      const opcoes =
+        document.querySelectorAll(
+          ".opcao-casa"
+        );
+
+
+      opcoes.forEach(item => {
+        item.classList.remove(
+          "selecionada"
+        );
+      });
+
+
+      opcao.classList.add(
+        "selecionada"
+      );
+
+
+      document
+        .getElementById("listaCasas")
+        .style.display = "none";
+    }
+
+
+    // =========================================================
+    // FECHAR LISTA AO CLICAR FORA
+    // =========================================================
+
+    document.addEventListener(
+      "click",
+      function(event) {
+
+        const campo =
+          document.querySelector(
+            ".busca-casa"
+          );
+
+
+        if (
+          campo &&
+          !campo.contains(event.target)
+        ) {
+
+          document
+            .getElementById("listaCasas")
+            .style.display = "none";
+
+        }
+
+      }
+    );
+
+
+    // =========================================================
+    // REGISTRAR ENTREGA
+    // =========================================================
+
+    async function registrarEntrega() {
+
+
+      const unidade =
+        document
+          .getElementById("unidade")
+          .value;
+
+
+      const numeroCasa =
+        document
+          .getElementById("buscaCasa")
+          .value
+          .trim();
+
+
+      const entregador =
+        document
+          .getElementById("entregador")
+          .value
+          .trim();
+
+
+      const telefone =
+        document
+          .getElementById("telefone")
+          .value
+          .trim();
+
+
+      const transportadora =
+        document
+          .getElementById("transportadora")
+          .value
+          .trim();
+
+
+      const botao =
+        document
+          .getElementById("botao");
+
+
+      const mensagem =
+        document
+          .getElementById("mensagem");
+
+
+      mensagem.className =
+        "mensagem";
+
       mensagem.textContent = "";
 
 
-      // Validação
+      // =====================================================
+      // VALIDAÇÃO
+      // =====================================================
 
       if (!unidade) {
-        mensagem.className = "mensagem erro";
+
+        mensagem.className =
+          "mensagem erro";
+
         mensagem.textContent =
-          "Selecione a casa.";
+          "Selecione uma casa na lista.";
+
         return;
       }
+
+
+      if (!numeroCasa) {
+
+        mensagem.className =
+          "mensagem erro";
+
+        mensagem.textContent =
+          "Informe o número da casa.";
+
+        return;
+      }
+
 
       if (!entregador) {
-        mensagem.className = "mensagem erro";
+
+        mensagem.className =
+          "mensagem erro";
+
         mensagem.textContent =
           "Informe o nome do entregador.";
+
         return;
       }
+
 
       if (!telefone) {
-        mensagem.className = "mensagem erro";
+
+        mensagem.className =
+          "mensagem erro";
+
         mensagem.textContent =
           "Informe o telefone.";
+
         return;
       }
 
 
-      // Bloqueia botão
+      // =====================================================
+      // BLOQUEIA BOTÃO
+      // =====================================================
 
       botao.disabled = true;
-      botao.textContent = "Registrando entrega...";
+
+      botao.textContent =
+        "Registrando entrega...";
 
 
       try {
 
-        const response = await fetch(
-          "/api/entrega",
-          {
-            method: "POST",
 
-            headers: {
-              "Content-Type": "application/json"
-            },
+        const response =
+          await fetch(
+            "/api/entrega",
+            {
+              method: "POST",
 
-            body: JSON.stringify({
-              unidade_id: Number(unidade),
-              entregador_nome: entregador,
-              entregador_tel: telefone,
-              transportadora: transportadora
-            })
-          }
-        );
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+
+                  unidade_id:
+                    Number(unidade),
+
+                  entregador_nome:
+                    entregador,
+
+                  entregador_tel:
+                    telefone,
+
+                  transportadora:
+                    transportadora
+
+                })
+            }
+          );
 
 
         const resultado =
           await response.json();
 
 
-        if (!response.ok || !resultado.sucesso) {
+        if (
+          !response.ok ||
+          !resultado.sucesso
+        ) {
 
           let erro =
             resultado.erro ||
             "Não foi possível registrar a entrega.";
 
+
           try {
-            erro = JSON.parse(erro).message || erro;
+
+            erro =
+              JSON.parse(erro).message ||
+              erro;
+
           } catch (_) {}
+
 
           throw new Error(erro);
         }
@@ -429,14 +820,18 @@ export default {
         mensagem.className =
           "mensagem sucesso";
 
+
         mensagem.innerHTML =
           "✅ Entrega registrada!<br><br>" +
+
           "Casa: <strong>" +
           entrega.unidade_numero +
           "</strong><br>" +
+
           "Entrega nº: <strong>" +
           entrega.entrega_id +
           "</strong><br><br>" +
+
           "Aguarde a abertura da caixa.";
 
 
@@ -446,21 +841,27 @@ export default {
 
       } catch (erro) {
 
+
         mensagem.className =
           "mensagem erro";
+
 
         mensagem.textContent =
           erro.message;
 
+
         botao.disabled = false;
+
 
         botao.textContent =
           "Solicitar abertura da caixa";
+
       }
 
     }
 
   </script>
+
 
 </body>
 
