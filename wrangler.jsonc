@@ -2,5 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sistema-entregas",
   "main": "src/index.js",
-  "compatibility_date": "2026-09-03"
+  "compatibility_date": "2026-09-03",
+
+  "vars": {
+    "SUPABASE_URL": "https://uyewwmbgvhevufmkdudy.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "COLE_AQUI_SUA_PUBLISHABLE_KEY"
+  }
 }
