@@ -1,8 +1,8 @@
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     try {
       const response = await fetch(
-        `${env.SUPABASE_URL}/rest/v1/rpc/get_unidades_count`,
+        `${env.SUPABASE_URL}/rest/v1/rpc/get_unidades_disponiveis`,
         {
           method: "POST",
           headers: {
@@ -10,7 +10,7 @@ export default {
             "apikey": env.SUPABASE_PUBLISHABLE_KEY,
             "Authorization": `Bearer ${env.SUPABASE_PUBLISHABLE_KEY}`
           },
-          body: JSON.stringify({})
+          body: "{}"
         }
       );
 
@@ -18,7 +18,7 @@ export default {
         const erro = await response.text();
 
         return new Response(
-          `Erro ao consultar Supabase: ${erro}`,
+          `Erro ao consultar unidades:\n${erro}`,
           {
             status: 500,
             headers: {
@@ -28,16 +28,27 @@ export default {
         );
       }
 
-      const total = await response.json();
+      const unidades = await response.json();
+
+      let lista = "";
+
+      for (const unidade of unidades) {
+        lista += `
+          <option value="${unidade.id}">
+            ${unidade.numero}${unidade.bloco ? " - " + unidade.bloco : ""}
+          </option>
+        `;
+      }
 
       const html = `
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Sistema de Entregas</title>
+  <title>Registrar Entrega</title>
 
   <style>
     * {
@@ -79,42 +90,30 @@ export default {
     .subtitle {
       text-align: center;
       color: #6b7280;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
-    .status {
-      background: #ecfdf5;
-      color: #047857;
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
-
-    .contador {
-      background: #eff6ff;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .numero {
-      font-size: 38px;
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
       font-weight: bold;
-      color: #2563eb;
+      font-size: 14px;
     }
 
-    .texto {
-      margin-top: 5px;
-      color: #6b7280;
-      font-size: 14px;
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      font-size: 16px;
+      background: white;
     }
 
     .button {
-      display: block;
       width: 100%;
+      margin-top: 24px;
       padding: 15px;
       border: 0;
       border-radius: 10px;
@@ -122,13 +121,14 @@ export default {
       color: white;
       font-size: 16px;
       font-weight: bold;
+      cursor: pointer;
     }
 
     .info {
       margin-top: 24px;
       padding-top: 20px;
       border-top: 1px solid #e5e7eb;
-      font-size: 14px;
+      font-size: 13px;
       color: #6b7280;
       text-align: center;
     }
@@ -143,29 +143,61 @@ export default {
 
       <div class="logo">📦</div>
 
-      <h1>Sistema de Entregas</h1>
+      <h1>Registrar entrega</h1>
 
       <div class="subtitle">
         Condomínio Villagio Primavera
       </div>
 
-      <div class="status">
-        ● Sistema online
-      </div>
+      <label for="unidade">
+        Casa / Unidade
+      </label>
 
-      <div class="contador">
-        <div class="numero">${total}</div>
-        <div class="texto">
-          unidades cadastradas
-        </div>
-      </div>
+      <select id="unidade">
+        <option value="">
+          Selecione a casa
+        </option>
+
+        ${lista}
+
+      </select>
+
+      <label for="entregador">
+        Nome do entregador
+      </label>
+
+      <input
+        id="entregador"
+        type="text"
+        placeholder="Digite seu nome"
+      >
+
+      <label for="telefone">
+        Telefone
+      </label>
+
+      <input
+        id="telefone"
+        type="tel"
+        placeholder="(11) 99999-9999"
+      >
+
+      <label for="transportadora">
+        Transportadora
+      </label>
+
+      <input
+        id="transportadora"
+        type="text"
+        placeholder="Ex.: Mercado Livre"
+      >
 
       <button class="button">
-        Registrar uma entrega
+        Solicitar abertura da caixa
       </button>
 
       <div class="info">
-        Acesso destinado aos entregadores do condomínio..
+        Preencha os dados para registrar a entrega.
       </div>
 
     </div>
