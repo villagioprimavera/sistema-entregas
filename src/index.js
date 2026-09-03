@@ -165,7 +165,7 @@ export default {
       </button>
 
       <div class="info">
-        Acesso destinado aos entregadores do condomínio.
+        Acesso destinado aos entregadores do condomínio..
       </div>
 
     </div>
